@@ -1,0 +1,4 @@
+.view-title h1 {
+    font-size: var(--lumo-font-size-l);
+    font-weight: 600;
+}
