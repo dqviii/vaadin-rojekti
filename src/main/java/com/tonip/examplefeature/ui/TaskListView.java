@@ -15,6 +15,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -23,9 +24,10 @@ import java.util.Optional;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
 
-@Route(value = "")
+@Route(value = "tasks")
 @PageTitle("Task List")
-@Menu(order = 0, icon = "icons/clipboard-check.svg", title = "Task List")
+@Menu(order = 10, icon = "icons/clipboard-check.svg", title = "Task List")
+@PermitAll
 class TaskListView extends VerticalLayout {
 
     private final TaskService taskService;
