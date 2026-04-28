@@ -3,11 +3,15 @@ package com.tonip.base.ui;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -15,29 +19,70 @@ import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.spring.security.AuthenticationContext;
 
 @Layout
 @AnonymousAllowed
 public final class MainLayout extends AppLayout {
 
-    MainLayout() {
+    private final AuthenticationContext authContext;
+
+    MainLayout(AuthenticationContext authContext) {
+        this.authContext = authContext;
         setPrimarySection(Section.DRAWER);
-        addToDrawer(createApplicationHeader(), createApplicationDrawer(), createApplicationFooter());
+        addToNavbar(createApplicationHeader());
+        addToDrawer(createApplicationDrawer(), createApplicationFooter());
     }
 
     private Component createApplicationHeader() {
-        // TODO Replace with real application logo and name
-        var appLogo = new Avatar("My Application");
+        var drawerToggle = new DrawerToggle();
+        drawerToggle.setAriaLabel("Toggle navigation");
+
+        var appLogo = new Avatar("Movie");
         appLogo.addClassName("app-logo");
         appLogo.addThemeVariants(AvatarVariant.AURA_FILLED, AvatarVariant.XSMALL);
 
-        var appName = new Span("My Application");
+        var appName = new Span("Movie Database Application");
         appName.addClassName("app-name");
 
-        var header = new HorizontalLayout(appLogo, appName);
+        var brand = new HorizontalLayout(appLogo, appName);
+        brand.setAlignItems(FlexComponent.Alignment.CENTER);
+        brand.setSpacing(true);
+
+        var header = new HorizontalLayout(drawerToggle, brand, createUserMenu());
+        header.addClassName("app-header");
         header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setWidthFull();
         header.setPadding(true);
+        header.expand(brand);
         return header;
+    }
+
+    private Component createUserMenu() {
+        var userArea = new HorizontalLayout();
+        userArea.setAlignItems(FlexComponent.Alignment.CENTER);
+        userArea.setSpacing(true);
+
+        authContext.getPrincipalName().ifPresentOrElse(name -> {
+            var userIcon = new Icon(VaadinIcon.USER);
+            userIcon.addClassName("app-user-icon");
+
+            var userName = new Span(name);
+            userName.addClassName("app-user-name");
+
+            var logout = new Button("Logout", new Icon(VaadinIcon.SIGN_OUT), e -> authContext.logout());
+            logout.addThemeVariants(ButtonVariant.TERTIARY);
+            logout.addClassName("app-logout");
+
+            userArea.add(userIcon, userName, logout);
+        }, () -> {
+            var login = new Button("Sign in", new Icon(VaadinIcon.SIGN_IN),
+                    e -> getUI().ifPresent(ui -> ui.navigate("login")));
+            login.addThemeVariants(ButtonVariant.TERTIARY);
+            userArea.add(login);
+        });
+
+        return userArea;
     }
 
     private Component createApplicationDrawer() {

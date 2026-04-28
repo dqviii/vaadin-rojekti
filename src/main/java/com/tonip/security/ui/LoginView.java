@@ -1,5 +1,6 @@
 package com.tonip.security.ui;
 
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -26,7 +27,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         loginForm.setAction("login");
         loginForm.setForgotPasswordButtonVisible(false);
 
-        add(new H1("Vaadin Movie App"), loginForm);
+        add(new H1("Vaadin Movie App"), loginForm, new Anchor("register", "Create an account"));
     }
 
     @Override

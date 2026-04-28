@@ -82,8 +82,44 @@ vaadin-app-layout::part(drawer) {
     border-inline-end: 1px solid hsl(35, 30%, 70%);
 }
 
+/* Top header bar — marquee strip across the navbar */
+vaadin-app-layout::part(navbar) {
+    background: linear-gradient(180deg, #FBF6E7 0%, #EFE4C9 100%);
+    border-bottom: 2px solid var(--lumo-primary-color);
+    box-shadow: var(--lumo-box-shadow-s);
+}
+
+.app-header {
+    gap: var(--lumo-space-m);
+}
+
+.app-user-icon {
+    color: var(--lumo-secondary-text-color);
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+}
+
+.app-user-name {
+    font-weight: 600;
+    color: var(--lumo-header-text-color);
+}
+
 .app-footer {
     border-top: 1px solid hsl(35, 30%, 70%);
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
+}
+
+/* Marquee backdrop for the movie list view */
+.movie-list-view {
+    background:
+        repeating-linear-gradient(
+            45deg,
+            transparent 0,
+            transparent 22px,
+            hsla(0, 62%, 36%, 0.04) 22px,
+            hsla(0, 62%, 36%, 0.04) 24px
+        ),
+        var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
 }
