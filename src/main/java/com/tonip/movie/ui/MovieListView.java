@@ -2,12 +2,15 @@ package com.tonip.movie.ui;
 
 import com.tonip.base.ui.MainLayout;
 import com.tonip.base.ui.ViewTitle;
+import com.tonip.movie.GenreService;
 import com.tonip.movie.MovieService;
 import com.tonip.movie.domain.AgeRating;
+import com.tonip.movie.domain.Genre;
 import com.tonip.movie.domain.Movie;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -30,6 +33,8 @@ import jakarta.annotation.security.PermitAll;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
 
@@ -40,10 +45,12 @@ import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRe
 public class MovieListView extends VerticalLayout {
 
     private final MovieService movieService;
+    private final GenreService genreService;
     private final Grid<Movie> grid = new Grid<>(Movie.class, false);
 
-    public MovieListView(MovieService movieService) {
+    public MovieListView(MovieService movieService, GenreService genreService) {
         this.movieService = movieService;
+        this.genreService = genreService;
 
         addClassName("movie-list-view");
 
@@ -66,6 +73,10 @@ public class MovieListView extends VerticalLayout {
         grid.addColumn(m -> dateFormatter.format(m.getReleaseDate())).setHeader("Release date").setAutoWidth(true);
         grid.addColumn(m -> m.getAgeRating().getDisplayName()).setHeader("Rating").setAutoWidth(true);
         grid.addColumn(Movie::getOriginalLanguage).setHeader("Language").setAutoWidth(true);
+        grid.addColumn(m -> m.getGenres().stream()
+                .map(Genre::getGenreName)
+                .collect(Collectors.joining(", ")))
+                .setHeader("Genres").setAutoWidth(true).setFlexGrow(1);
         grid.addComponentColumn(this::createRowActions).setHeader("Actions").setAutoWidth(true).setFlexGrow(0);
         grid.setItems(query -> movieService.list(toSpringPageRequest(query)).stream());
         grid.setEmptyStateText("No movies yet. Click \"New movie\" to add one.");
@@ -118,8 +129,13 @@ public class MovieListView extends VerticalLayout {
         language.setMaxLength(Movie.LANGUAGE_MAX_LENGTH);
         language.setRequiredIndicatorVisible(true);
 
-        var form = new FormLayout(title, director, releaseDate, ageRating, language);
+        var genres = new MultiSelectComboBox<Genre>("Genres");
+        genres.setItems(genreService.findAll());
+        genres.setItemLabelGenerator(Genre::getGenreName);
+
+        var form = new FormLayout(title, director, releaseDate, ageRating, language, genres);
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("32em", 2));
+        form.setColspan(genres, 2);
 
         var binder = new BeanValidationBinder<>(Movie.class);
         binder.forField(title).asRequired("Title is required").bind("title");
@@ -127,6 +143,9 @@ public class MovieListView extends VerticalLayout {
         binder.forField(releaseDate).asRequired("Release date is required").bind("releaseDate");
         binder.forField(ageRating).asRequired("Age rating is required").bind("ageRating");
         binder.forField(language).asRequired("Language is required").bind("originalLanguage");
+        binder.forField(genres)
+                .bind(m -> new LinkedHashSet<>(m.getGenres()),
+                        (m, v) -> m.setGenres(new LinkedHashSet<>(v)));
         binder.readBean(movie);
 
         var save = new Button("Save", e -> {

@@ -10,11 +10,12 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -42,21 +43,34 @@ public class MovieSearchView extends VerticalLayout {
     public MovieSearchView(MovieSearchService searchService) {
         this.searchService = searchService;
 
+        addClassName("movie-search-view");
+        setSizeFull();
+        setPadding(false);
+        setSpacing(false);
+
         ratingField.setItems(AgeRating.values());
         ratingField.setItemLabelGenerator(AgeRating::getDisplayName);
         ratingField.setClearButtonVisible(true);
         titleField.setClearButtonVisible(true);
         directorField.setClearButtonVisible(true);
+        titleField.setWidthFull();
+        directorField.setWidthFull();
+        ratingField.setWidthFull();
 
         var searchBtn = new Button("Search", new Icon(VaadinIcon.SEARCH), e -> applyFilters());
         searchBtn.addThemeVariants(ButtonVariant.PRIMARY);
+        searchBtn.setWidthFull();
 
         var resetBtn = new Button("Reset", e -> resetFilters());
+        resetBtn.setWidthFull();
 
-        var filters = new HorizontalLayout(titleField, directorField, ratingField, searchBtn, resetBtn);
-        filters.setAlignItems(FlexComponent.Alignment.END);
-        filters.setWrap(true);
-        filters.setWidthFull();
+        var filtersPanel = new VerticalLayout(
+                new H3("Filters"),
+                titleField, directorField, ratingField,
+                searchBtn, resetBtn);
+        filtersPanel.addClassName("movie-search-filters");
+        filtersPanel.setPadding(false);
+        filtersPanel.setSpacing(true);
 
         var dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(getLocale());
         resultGrid.addColumn(Movie::getTitle).setHeader("Title").setAutoWidth(true).setFlexGrow(1);
@@ -68,10 +82,24 @@ public class MovieSearchView extends VerticalLayout {
         resultGrid.setEmptyStateText("No movies match the current filters.");
         resultGrid.setSizeFull();
 
-        setSizeFull();
-        setPadding(true);
-        setSpacing(true);
-        add(new ViewTitle("Search movies"), filters, resultGrid);
+        var resultsPanel = new VerticalLayout(new ViewTitle("Search results"), resultGrid);
+        resultsPanel.addClassName("movie-search-results");
+        resultsPanel.setPadding(false);
+        resultsPanel.setSpacing(true);
+        resultsPanel.setSizeFull();
+        resultsPanel.expand(resultGrid);
+
+        var split = new SplitLayout(filtersPanel, resultsPanel);
+        split.addClassName("movie-search-split");
+        split.setOrientation(SplitLayout.Orientation.HORIZONTAL);
+        split.setSplitterPosition(28);
+        split.setSizeFull();
+
+        var header = new HorizontalLayout(new ViewTitle("Search movies"));
+        header.setPadding(true);
+
+        add(header, split);
+        expand(split);
     }
 
     private void applyFilters() {

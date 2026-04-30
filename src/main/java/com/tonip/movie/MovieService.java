@@ -37,4 +37,9 @@ public class MovieService {
     public List<Movie> list(Pageable pageable) {
         return movieRepository.findAllBy(pageable).toList();
     }
+
+    @Transactional(readOnly = true)
+    public long count() {
+        return movieRepository.count();
+    }
 }

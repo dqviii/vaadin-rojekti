@@ -8,11 +8,15 @@ import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.AnchorTarget;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.*;
+
+import java.time.Year;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
@@ -92,8 +96,28 @@ public final class MainLayout extends AppLayout {
     }
 
     private Component createApplicationFooter() {
-        var footer = new VerticalLayout(new Span("Made with ❤️ with Vaadin"));
+        var copyright = new Span("© " + Year.now().getValue());
+        copyright.addClassName("app-footer-copy");
+
+        var author = new Span("Toni Piispa");
+        author.addClassName("app-footer-author");
+
+        var topLine = new HorizontalLayout(copyright, author);
+        topLine.setAlignItems(FlexComponent.Alignment.CENTER);
+        topLine.setSpacing(true);
+
+        var sourceLink = new Anchor("https://github.com/dqviii/vaadin-rojekti", "Source on GitHub ↗");
+        sourceLink.setTarget(AnchorTarget.BLANK);
+        sourceLink.getElement().setAttribute("rel", "noopener noreferrer");
+        sourceLink.addClassName("app-footer-link");
+
+        var courseNote = new Span("Vaadin coursework");
+        courseNote.addClassName("app-footer-note");
+
+        var footer = new VerticalLayout(topLine, sourceLink, courseNote);
         footer.setAlignItems(FlexComponent.Alignment.CENTER);
+        footer.setSpacing(false);
+        footer.setPadding(true);
         footer.addClassName("app-footer");
         return footer;
     }
