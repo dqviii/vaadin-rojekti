@@ -2,13 +2,16 @@ package com.tonip.movie.ui;
 
 import com.tonip.base.ui.MainLayout;
 import com.tonip.base.ui.ViewTitle;
+import com.tonip.movie.GenreService;
 import com.tonip.movie.MovieSearchCriteria;
 import com.tonip.movie.MovieSearchService;
 import com.tonip.movie.domain.AgeRating;
+import com.tonip.movie.domain.Genre;
 import com.tonip.movie.domain.Movie;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
@@ -24,6 +27,7 @@ import jakarta.annotation.security.PermitAll;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.stream.Collectors;
 
 @Route(value = "movies/search", layout = MainLayout.class)
 @PageTitle("Search movies")
@@ -33,14 +37,17 @@ public class MovieSearchView extends VerticalLayout {
 
     private final MovieSearchService searchService;
 
-    private final TextField titleField = new TextField("Title contains");
-    private final TextField directorField = new TextField("Director contains");
+    private final TextField searchTextField = new TextField("Quick search (title or director)");
     private final ComboBox<AgeRating> ratingField = new ComboBox<>("Age rating");
+    private final DatePicker releaseFromField = new DatePicker("Released after");
+    private final DatePicker releaseToField = new DatePicker("Released before");
+    private final ComboBox<Genre> genreField = new ComboBox<>("Genre");
+    private final TextField genreNameField = new TextField("Genre name contains");
     private final Grid<Movie> resultGrid = new Grid<>(Movie.class, false);
 
     private MovieSearchCriteria criteria = MovieSearchCriteria.empty();
 
-    public MovieSearchView(MovieSearchService searchService) {
+    public MovieSearchView(MovieSearchService searchService, GenreService genreService) {
         this.searchService = searchService;
 
         addClassName("movie-search-view");
@@ -51,11 +58,22 @@ public class MovieSearchView extends VerticalLayout {
         ratingField.setItems(AgeRating.values());
         ratingField.setItemLabelGenerator(AgeRating::getDisplayName);
         ratingField.setClearButtonVisible(true);
-        titleField.setClearButtonVisible(true);
-        directorField.setClearButtonVisible(true);
-        titleField.setWidthFull();
-        directorField.setWidthFull();
+
+        genreField.setItems(genreService.findAll());
+        genreField.setItemLabelGenerator(Genre::getGenreName);
+        genreField.setClearButtonVisible(true);
+
+        searchTextField.setClearButtonVisible(true);
+        genreNameField.setClearButtonVisible(true);
+        releaseFromField.setClearButtonVisible(true);
+        releaseToField.setClearButtonVisible(true);
+
+        searchTextField.setWidthFull();
         ratingField.setWidthFull();
+        releaseFromField.setWidthFull();
+        releaseToField.setWidthFull();
+        genreField.setWidthFull();
+        genreNameField.setWidthFull();
 
         var searchBtn = new Button("Search", new Icon(VaadinIcon.SEARCH), e -> applyFilters());
         searchBtn.addThemeVariants(ButtonVariant.PRIMARY);
@@ -66,7 +84,10 @@ public class MovieSearchView extends VerticalLayout {
 
         var filtersPanel = new VerticalLayout(
                 new H3("Filters"),
-                titleField, directorField, ratingField,
+                searchTextField,
+                ratingField,
+                releaseFromField, releaseToField,
+                genreField, genreNameField,
                 searchBtn, resetBtn);
         filtersPanel.addClassName("movie-search-filters");
         filtersPanel.setPadding(false);
@@ -78,6 +99,10 @@ public class MovieSearchView extends VerticalLayout {
         resultGrid.addColumn(m -> dateFormatter.format(m.getReleaseDate())).setHeader("Release date").setAutoWidth(true);
         resultGrid.addColumn(m -> m.getAgeRating().getDisplayName()).setHeader("Rating").setAutoWidth(true);
         resultGrid.addColumn(Movie::getOriginalLanguage).setHeader("Language").setAutoWidth(true);
+        resultGrid.addColumn(m -> m.getGenres().stream()
+                        .map(Genre::getGenreName)
+                        .collect(Collectors.joining(", ")))
+                .setHeader("Genres").setAutoWidth(true);
         resultGrid.setItems(query -> searchService.search(criteria, query.getOffset(), query.getLimit()).stream());
         resultGrid.setEmptyStateText("No movies match the current filters.");
         resultGrid.setSizeFull();
@@ -104,16 +129,22 @@ public class MovieSearchView extends VerticalLayout {
 
     private void applyFilters() {
         criteria = new MovieSearchCriteria(
-                titleField.getValue(),
-                directorField.getValue(),
-                ratingField.getValue());
+                searchTextField.getValue(),
+                ratingField.getValue(),
+                releaseFromField.getValue(),
+                releaseToField.getValue(),
+                genreField.getValue(),
+                genreNameField.getValue());
         resultGrid.getDataProvider().refreshAll();
     }
 
     private void resetFilters() {
-        titleField.clear();
-        directorField.clear();
+        searchTextField.clear();
         ratingField.clear();
+        releaseFromField.clear();
+        releaseToField.clear();
+        genreField.clear();
+        genreNameField.clear();
         criteria = MovieSearchCriteria.empty();
         resultGrid.getDataProvider().refreshAll();
     }

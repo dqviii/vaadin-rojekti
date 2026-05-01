@@ -21,6 +21,7 @@ public class UserSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         seedIfMissing("Admin", "admin123", Role.ADMIN);
+        seedIfMissing("Super", "super123", Role.SUPER);
         seedIfMissing("User", "user123", Role.USER);
     }
 

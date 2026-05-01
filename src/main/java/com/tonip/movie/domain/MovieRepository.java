@@ -13,6 +13,8 @@ public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecific
 
     Slice<Movie> findAllBy(Pageable pageable);
 
+    boolean existsByTitleIgnoreCase(String title);
+
     @Query("select m from Movie m where m.id not in (select s.movie.id from MovieStats s)")
     List<Movie> findMoviesWithoutStats();
 
