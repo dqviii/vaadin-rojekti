@@ -1,5 +1,6 @@
 package com.tonip.movie;
 
+import com.tonip.base.Broadcaster;
 import com.tonip.movie.domain.Movie;
 import com.tonip.movie.domain.MovieRepository;
 import org.springframework.data.domain.Pageable;
@@ -12,20 +13,27 @@ import java.util.Optional;
 @Service
 public class MovieService {
 
-    private final MovieRepository movieRepository;
+    public static final String TOPIC = "movies";
 
-    MovieService(MovieRepository movieRepository) {
+    private final MovieRepository movieRepository;
+    private final Broadcaster broadcaster;
+
+    MovieService(MovieRepository movieRepository, Broadcaster broadcaster) {
         this.movieRepository = movieRepository;
+        this.broadcaster = broadcaster;
     }
 
     @Transactional
     public Movie save(Movie movie) {
-        return movieRepository.saveAndFlush(movie);
+        Movie saved = movieRepository.saveAndFlush(movie);
+        broadcaster.broadcast(TOPIC);
+        return saved;
     }
 
     @Transactional
     public void delete(Long id) {
         movieRepository.deleteById(id);
+        broadcaster.broadcast(TOPIC);
     }
 
     @Transactional(readOnly = true)

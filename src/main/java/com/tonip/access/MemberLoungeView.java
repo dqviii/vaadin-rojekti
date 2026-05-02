@@ -7,6 +7,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 
 @Route(value = "lounge", layout = MainLayout.class)
@@ -16,11 +17,22 @@ import jakarta.annotation.security.RolesAllowed;
 public class MemberLoungeView extends VerticalLayout {
 
     public MemberLoungeView() {
-        setPadding(true);
-        setSpacing(true);
-        add(new ViewTitle("Member lounge"));
-        add(new Paragraph(
+        // C4 evidence: 6 distinct Lumo Utility class categories on a single view
+        // (Padding, Margin, Gap, AlignItems, FontSize, TextColor).
+        addClassNames(
+                LumoUtility.Padding.LARGE,
+                LumoUtility.Margin.Top.MEDIUM,
+                LumoUtility.Gap.MEDIUM,
+                LumoUtility.AlignItems.CENTER);
+
+        var title = new ViewTitle("Member lounge");
+        title.addClassName(LumoUtility.FontSize.XXLARGE);
+
+        var body = new Paragraph(
                 "This is a demo route. Only users with role SUPER or USER can access it. "
-                        + "ADMIN accounts are redirected to the access-denied page."));
+                        + "ADMIN accounts are redirected to the access-denied page.");
+        body.addClassName(LumoUtility.TextColor.SECONDARY);
+
+        add(title, body);
     }
 }

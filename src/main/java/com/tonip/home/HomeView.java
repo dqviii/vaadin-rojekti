@@ -42,26 +42,24 @@ public class HomeView extends VerticalLayout {
 
         var hero = new Div();
         hero.addClassName("home-hero");
-        hero.add(new ViewTitle("Movie Database"));
-        hero.add(new Paragraph(
-                "Welcome to the Movie / Cinema Operations app. Manage movies, showtimes, "
-                        + "genres, and box-office stats from a single dashboard."));
+        hero.add(new ViewTitle(getTranslation("home.title")));
+        hero.add(new Paragraph(getTranslation("home.intro")));
 
         var statsRow = new Div();
         statsRow.addClassName("home-stats");
         statsRow.add(
-                statCard(VaadinIcon.FILM, movieService.count(), "Movies"),
-                statCard(VaadinIcon.TICKET, showtimeService.count(), "Showtimes"),
-                statCard(VaadinIcon.TAGS, genreService.count(), "Genres"),
-                statCard(VaadinIcon.CHART, movieStatsService.count(), "Stat profiles"));
+                statCard(VaadinIcon.FILM, movieService.count(), getTranslation("home.stat.movies")),
+                statCard(VaadinIcon.TICKET, showtimeService.count(), getTranslation("home.stat.showtimes")),
+                statCard(VaadinIcon.TAGS, genreService.count(), getTranslation("home.stat.genres")),
+                statCard(VaadinIcon.CHART, movieStatsService.count(), getTranslation("home.stat.stats")));
 
         var recentSection = new Div();
         recentSection.addClassName("home-recent");
-        recentSection.add(new H2("Recent showtimes"));
+        recentSection.add(new H2(getTranslation("home.recent.title")));
 
         List<Showtime> recent = showtimeService.findRecent(5);
         if (recent.isEmpty()) {
-            recentSection.add(new Paragraph("No showtimes scheduled yet."));
+            recentSection.add(new Paragraph(getTranslation("home.recent.empty")));
         } else {
             var formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
                     .withLocale(getLocale());

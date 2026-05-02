@@ -1,5 +1,6 @@
 package com.tonip.movie.ui;
 
+import com.tonip.base.Broadcaster;
 import com.tonip.base.ui.MainLayout;
 import com.tonip.base.ui.ViewTitle;
 import com.tonip.movie.GenreService;
@@ -7,6 +8,9 @@ import com.tonip.movie.MovieService;
 import com.tonip.movie.domain.AgeRating;
 import com.tonip.movie.domain.Genre;
 import com.tonip.movie.domain.Movie;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -46,11 +50,14 @@ public class MovieListView extends VerticalLayout {
 
     private final MovieService movieService;
     private final GenreService genreService;
+    private final Broadcaster broadcaster;
     private final Grid<Movie> grid = new Grid<>(Movie.class, false);
+    private Registration broadcasterRegistration;
 
-    public MovieListView(MovieService movieService, GenreService genreService) {
+    public MovieListView(MovieService movieService, GenreService genreService, Broadcaster broadcaster) {
         this.movieService = movieService;
         this.genreService = genreService;
+        this.broadcaster = broadcaster;
 
         addClassName("movie-list-view");
 
@@ -168,6 +175,24 @@ public class MovieListView extends VerticalLayout {
         dialog.add(form);
         dialog.getFooter().add(cancel, save);
         dialog.open();
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        var ui = attachEvent.getUI();
+        broadcasterRegistration = broadcaster.register(topic -> {
+            if (MovieService.TOPIC.equals(topic)) {
+                ui.access(() -> grid.getDataProvider().refreshAll());
+            }
+        });
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        if (broadcasterRegistration != null) {
+            broadcasterRegistration.remove();
+            broadcasterRegistration = null;
+        }
     }
 
     private void confirmDelete(Movie movie) {

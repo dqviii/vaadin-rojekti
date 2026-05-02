@@ -15,11 +15,16 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.*;
+import com.vaadin.flow.component.select.Select;
 
 import java.time.Year;
+import java.util.Locale;
+import com.tonip.base.MovieI18NProvider;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -53,13 +58,35 @@ public final class MainLayout extends AppLayout {
         brand.setAlignItems(FlexComponent.Alignment.CENTER);
         brand.setSpacing(true);
 
-        var header = new HorizontalLayout(drawerToggle, brand, createUserMenu());
+        var header = new HorizontalLayout(drawerToggle, brand, createLanguageSwitch(), createUserMenu());
         header.addClassName("app-header");
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
         header.setPadding(true);
         header.expand(brand);
         return header;
+    }
+
+    private Component createLanguageSwitch() {
+        var select = new Select<Locale>();
+        select.setItems(Locale.ENGLISH, MovieI18NProvider.FINNISH);
+        select.setItemLabelGenerator(l -> l.getLanguage().toUpperCase(Locale.ROOT));
+        select.setWidth("80px");
+        select.addClassName("app-lang-switch");
+
+        var current = VaadinSession.getCurrent().getLocale();
+        select.setValue("fi".equalsIgnoreCase(current != null ? current.getLanguage() : "")
+                ? MovieI18NProvider.FINNISH
+                : Locale.ENGLISH);
+
+        select.addValueChangeListener(e -> {
+            if (e.getValue() == null) {
+                return;
+            }
+            VaadinSession.getCurrent().setLocale(e.getValue());
+            UI.getCurrent().getPage().reload();
+        });
+        return select;
     }
 
     private Component createUserMenu() {

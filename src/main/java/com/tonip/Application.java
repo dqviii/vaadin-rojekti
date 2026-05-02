@@ -5,12 +5,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
 
 @SpringBootApplication
 @Theme("movie")
 @StyleSheet(Lumo.UTILITY_STYLESHEET)
+@Push
 public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {

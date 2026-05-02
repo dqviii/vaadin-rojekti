@@ -2,6 +2,7 @@ package com.tonip.access;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -16,6 +17,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @PageTitle("Access denied")
 @AnonymousAllowed
+@CssImport("./styles/access-denied.css")
 public class AccessDeniedView extends VerticalLayout
         implements HasErrorParameter<AccessDeniedException> {
 
@@ -25,17 +27,26 @@ public class AccessDeniedView extends VerticalLayout
         setAlignItems(FlexComponent.Alignment.CENTER);
         setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         setPadding(true);
-        setSpacing(true);
+        setSpacing(false);
 
-        add(new H1("Access denied"));
-        add(new Paragraph(
+        var card = new VerticalLayout();
+        card.addClassName("access-denied-card");
+        card.setAlignItems(FlexComponent.Alignment.CENTER);
+        card.setSpacing(false);
+        card.setPadding(false);
+
+        card.add(new H1("Access denied"));
+        card.add(new Paragraph(
                 "Your account does not have permission to view this page. "
                         + "Sign in with a different role, or return to the home page."));
 
         var goHome = new Button("Back to home",
                 e -> getUI().ifPresent(ui -> ui.navigate("")));
         goHome.addThemeVariants(ButtonVariant.PRIMARY);
-        add(goHome);
+        goHome.addClassName("access-denied-cta");
+        card.add(goHome);
+
+        add(card);
     }
 
     @Override

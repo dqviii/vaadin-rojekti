@@ -1,0 +1,51 @@
+/* View-scoped styles for AccessDeniedView.
+   Every selector lives under `.access-denied-view`, so nothing leaks
+   to other views even though this file is part of the global bundle. */
+
+.access-denied-view {
+    background:
+        radial-gradient(ellipse at top, hsla(0, 62%, 36%, 0.08), transparent 65%),
+        var(--lumo-base-color);
+}
+
+.access-denied-view .access-denied-card {
+    max-width: 520px;
+    padding: var(--lumo-space-xl) var(--lumo-space-l);
+    background: #FBF6E7;
+    border: 1px solid hsl(35, 30%, 70%);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--lumo-box-shadow-m);
+    text-align: center;
+}
+
+.access-denied-view .access-denied-card h1 {
+    margin: 0 0 var(--lumo-space-s);
+    font-size: var(--lumo-font-size-xxxl);
+    color: var(--lumo-header-text-color);
+}
+
+.access-denied-view .access-denied-card p {
+    margin: 0 0 var(--lumo-space-l);
+    color: var(--lumo-secondary-text-color);
+    max-width: 44ch;
+    margin-inline: auto;
+}
+
+/* C5 evidence: a single CSS class using :hover, :focus-visible, and transition. */
+.access-denied-view .access-denied-cta {
+    transition: transform 180ms ease,
+                box-shadow 180ms ease,
+                background-color 180ms ease;
+}
+
+.access-denied-view .access-denied-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--lumo-box-shadow-m);
+    background-color: var(--lumo-primary-text-color);
+}
+
+.access-denied-view .access-denied-cta:focus-visible {
+    outline: 2px solid var(--lumo-primary-color);
+    outline-offset: 3px;
+    box-shadow: var(--lumo-box-shadow-s);
+}
