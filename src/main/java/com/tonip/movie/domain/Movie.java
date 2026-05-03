@@ -1,7 +1,9 @@
 package com.tonip.movie.domain;
 
+import com.tonip.base.audit.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import org.hibernate.envers.Audited;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -22,8 +24,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
+@Audited
 @Table(name = "movie")
-public class Movie {
+public class Movie extends AuditableEntity {
 
     public static final int TITLE_MAX_LENGTH = 200;
     public static final int DIRECTOR_MAX_LENGTH = 120;

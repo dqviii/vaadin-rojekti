@@ -8,6 +8,7 @@ import com.tonip.movie.MovieService;
 import com.tonip.movie.domain.AgeRating;
 import com.tonip.movie.domain.Genre;
 import com.tonip.movie.domain.Movie;
+import com.tonip.movie.history.MovieHistoryService;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.shared.Registration;
@@ -51,13 +52,16 @@ public class MovieListView extends VerticalLayout {
     private final MovieService movieService;
     private final GenreService genreService;
     private final Broadcaster broadcaster;
+    private final MovieHistoryService historyService;
     private final Grid<Movie> grid = new Grid<>(Movie.class, false);
     private Registration broadcasterRegistration;
 
-    public MovieListView(MovieService movieService, GenreService genreService, Broadcaster broadcaster) {
+    public MovieListView(MovieService movieService, GenreService genreService,
+                         Broadcaster broadcaster, MovieHistoryService historyService) {
         this.movieService = movieService;
         this.genreService = genreService;
         this.broadcaster = broadcaster;
+        this.historyService = historyService;
 
         addClassName("movie-list-view");
 
@@ -96,6 +100,11 @@ public class MovieListView extends VerticalLayout {
     }
 
     private HorizontalLayout createRowActions(Movie movie) {
+        var history = new Button(new Icon(VaadinIcon.CLOCK), e -> openHistory(movie));
+        history.addThemeVariants(ButtonVariant.TERTIARY);
+        history.getElement().setAttribute("aria-label", "History of " + movie.getTitle());
+        history.getElement().setAttribute("title", "View revision history");
+
         var edit = new Button(new Icon(VaadinIcon.EDIT), e -> openEditor(movie));
         edit.addThemeVariants(ButtonVariant.TERTIARY);
         edit.getElement().setAttribute("aria-label", "Edit " + movie.getTitle());
@@ -104,9 +113,13 @@ public class MovieListView extends VerticalLayout {
         delete.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.ERROR);
         delete.getElement().setAttribute("aria-label", "Delete " + movie.getTitle());
 
-        var actions = new HorizontalLayout(edit, delete);
+        var actions = new HorizontalLayout(history, edit, delete);
         actions.setSpacing(false);
         return actions;
+    }
+
+    private void openHistory(Movie movie) {
+        new MovieHistoryDialog(movie, historyService, getLocale()).open();
     }
 
     private void openEditor(Movie movie) {

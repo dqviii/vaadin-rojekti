@@ -1,6 +1,7 @@
 package com.tonip.movie.ui;
 
 import com.tonip.base.ui.MainLayout;
+import com.tonip.base.ui.QuillEditor;
 import com.tonip.base.ui.ViewTitle;
 import com.tonip.movie.GenreService;
 import com.tonip.movie.domain.Genre;
@@ -52,7 +53,8 @@ public class GenreListView extends VerticalLayout {
         toolbar.expand(viewTitle);
 
         grid.addColumn(Genre::getGenreName).setHeader("Name").setAutoWidth(true).setFlexGrow(1);
-        grid.addColumn(Genre::getDescription).setHeader("Description").setAutoWidth(true).setFlexGrow(1);
+        grid.addColumn(g -> stripHtml(g.getDescription()))
+                .setHeader("Description").setAutoWidth(true).setFlexGrow(1);
         grid.addColumn(Genre::getIconCode).setHeader("Icon code").setAutoWidth(true);
         grid.addColumn(g -> Boolean.TRUE.equals(g.getMainstream()) ? "Yes" : "No")
                 .setHeader("Mainstream").setAutoWidth(true);
@@ -93,9 +95,8 @@ public class GenreListView extends VerticalLayout {
         name.setMaxLength(Genre.GENRE_NAME_MAX_LENGTH);
         name.setRequiredIndicatorVisible(true);
 
-        var description = new TextField("Description");
-        description.setMaxLength(Genre.DESCRIPTION_MAX_LENGTH);
-        description.setRequiredIndicatorVisible(true);
+        var description = new QuillEditor("Describe the genre…");
+        description.setWidthFull();
 
         var iconCode = new TextField("Icon code");
         iconCode.setMaxLength(Genre.ICON_CODE_MAX_LENGTH);
@@ -109,9 +110,17 @@ public class GenreListView extends VerticalLayout {
         targetAudience.setItemLabelGenerator(TargetAudience::getDisplayName);
         targetAudience.setRequiredIndicatorVisible(true);
 
-        var form = new FormLayout(name, description, iconCode, mainstream, targetAudience);
+        var descriptionLabel = new com.vaadin.flow.component.html.Span("Description");
+        descriptionLabel.getStyle().set("font-weight", "600")
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("font-size", "var(--lumo-font-size-s)");
+        var descriptionWrapper = new VerticalLayout(descriptionLabel, description);
+        descriptionWrapper.setSpacing(false);
+        descriptionWrapper.setPadding(false);
+
+        var form = new FormLayout(name, descriptionWrapper, iconCode, mainstream, targetAudience);
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("32em", 2));
-        form.setColspan(description, 2);
+        form.setColspan(descriptionWrapper, 2);
 
         var binder = new BeanValidationBinder<>(Genre.class);
         binder.forField(name).asRequired("Name is required").bind("genreName");
@@ -141,6 +150,13 @@ public class GenreListView extends VerticalLayout {
         dialog.add(form);
         dialog.getFooter().add(cancel, save);
         dialog.open();
+    }
+
+    private static String stripHtml(String html) {
+        if (html == null || html.isEmpty()) {
+            return "";
+        }
+        return html.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
     }
 
     private void confirmDelete(Genre genre) {

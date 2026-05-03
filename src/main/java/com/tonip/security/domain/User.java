@@ -1,12 +1,15 @@
 package com.tonip.security.domain;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
@@ -37,6 +40,14 @@ public class User {
 
     @Column(nullable = false)
     private boolean enabled = true;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "profile_picture")
+    private byte[] profilePicture;
+
+    @Column(name = "profile_picture_mime_type", length = 80)
+    private String profilePictureMimeType;
 
     protected User() {
     }
@@ -81,5 +92,21 @@ public class User {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public byte[] getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public String getProfilePictureMimeType() {
+        return profilePictureMimeType;
+    }
+
+    public void setProfilePictureMimeType(String profilePictureMimeType) {
+        this.profilePictureMimeType = profilePictureMimeType;
     }
 }

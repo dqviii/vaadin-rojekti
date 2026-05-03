@@ -1,7 +1,9 @@
 package com.tonip.movie.domain;
 
+import com.tonip.base.audit.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import org.hibernate.envers.Audited;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,8 +21,9 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 @Entity
+@Audited
 @Table(name = "movie_stats")
-public class MovieStats {
+public class MovieStats extends AuditableEntity {
 
     public static final int RUNTIME_MAX_MINUTES = 600;
     public static final String IMDB_MIN = "0.0";

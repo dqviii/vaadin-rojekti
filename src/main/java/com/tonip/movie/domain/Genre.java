@@ -1,7 +1,9 @@
 package com.tonip.movie.domain;
 
+import com.tonip.base.audit.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import org.hibernate.envers.Audited;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -13,11 +15,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
+@Audited
 @Table(name = "genre")
-public class Genre {
+public class Genre extends AuditableEntity {
 
     public static final int GENRE_NAME_MAX_LENGTH = 60;
-    public static final int DESCRIPTION_MAX_LENGTH = 240;
+    public static final int DESCRIPTION_MAX_LENGTH = 5000;
     public static final int ICON_CODE_MAX_LENGTH = 40;
 
     @Id
@@ -32,7 +35,7 @@ public class Genre {
 
     @NotBlank
     @Size(max = DESCRIPTION_MAX_LENGTH)
-    @Column(name = "description", nullable = false, length = DESCRIPTION_MAX_LENGTH)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description = "";
 
     @NotBlank

@@ -1,7 +1,9 @@
 package com.tonip.movie.domain;
 
+import com.tonip.base.audit.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import org.hibernate.envers.Audited;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -21,8 +23,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Audited
 @Table(name = "showtime")
-public class Showtime {
+public class Showtime extends AuditableEntity {
 
     public static final int THEATER_HALL_MAX_LENGTH = 50;
     public static final int AVAILABLE_SEATS_MAX = 2000;
