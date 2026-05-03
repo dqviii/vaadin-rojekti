@@ -12,6 +12,8 @@
 node_modules/
 src/main/frontend/generated/
 vite.generated.ts
+tsconfig.json
+types.d.ts
 
 # Local planning notes (keep out of Git history)
 PLAN*.md
