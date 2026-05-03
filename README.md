@@ -198,8 +198,8 @@ Vaatimukset: Docker Desktop (Windows/macOS) tai docker + docker compose -plugin 
 
 #### E5. Oman kuvan lisäys käyttäjälle
 - Tila: [x]
-- Todiste: `User.java` (`byte[] profilePicture` `@Lob @Basic(fetch=LAZY)` + `String profilePictureMimeType`); `UserProfileService.java` (`findByUsername`, `updateProfilePicture`, `removeProfilePicture`, `MAX_PROFILE_PICTURE_BYTES = 5 MB`); `ProfilePictureDialog.java` (Vaadin `Upload` + esikatselu + Save/Remove/Cancel); `MainLayout.java` (`buildUserAvatar`, `applyAvatarImage`, `openProfilePictureDialog`).
-- Miten toteutettu: Profiilikuvat tallennetaan suoraan tietokantaan tavutaulukkona (`@Lob byte[]` lazy-fetchillä, jotta tavalliset User-haut eivät turhaan lataa kuvabytejä). Tällä vältetään erillinen tiedostojärjestelmä-volumi ja kuva pysyy samassa transaktiossa kuin käyttäjätieto. Ylärajaksi on asetettu 5 MB (`MAX_PROFILE_PICTURE_BYTES`). **UI-virta**: headerin käyttäjäkuvake on vaihdettu Vaadinin `Avatar`iksi, joka näyttää kuvan `StreamResource`in kautta tai tunnuksen alkukirjaimet jos kuvaa ei ole. Klikkaus avaa `ProfilePictureDialog`in, jossa on 96px-esikatselu, `Upload`-komponentti `MemoryBuffer`illa (mime-tyypit `image/jpeg` + `image/png`, raja 5 MB) sekä Save / Remove / Cancel. Save ja Remove käyttävät callback-funktiota, joka päivittää headerin avatarin uudella resurssilla ilman sivun uudelleenlataamista. Postgres-volumessa kuva säilyy myös `docker compose down`/`up`-kierroksen yli.
+- Todiste: `User.java` (`byte[] profilePicture` `@Basic(fetch=LAZY)` + `columnDefinition = "bytea"` + `String profilePictureMimeType`); `UserProfileService.java` (`findByUsername`, `updateProfilePicture`, `removeProfilePicture`, `MAX_PROFILE_PICTURE_BYTES = 5 MB`); `ProfilePictureDialog.java` (Vaadin `Upload` + esikatselu + Save/Remove/Cancel); `MainLayout.java` (`buildUserAvatar`, `applyAvatarImage`, `openProfilePictureDialog`).
+- Miten toteutettu: Profiilikuvat tallennetaan suoraan tietokantaan `bytea`-sarakkeena (`byte[]`-kenttä lazy-fetchillä, jotta tavalliset User-haut eivät turhaan lataa kuvabytejä). Näin vältetään erillinen tiedostojärjestelmä-volumi ja kuva pysyy samassa transaktiossa kuin käyttäjätieto. Yläraja on 5 MB (`MAX_PROFILE_PICTURE_BYTES`). **UI-virta**: headerin käyttäjäkuvake on Vaadinin `Avatar`, joka näyttää kuvan `StreamResource`in kautta tai tunnuksen alkukirjaimet jos kuvaa ei ole. Klikkaus avaa `ProfilePictureDialog`in (96px-esikatselu, `Upload` + `MemoryBuffer`, mime-tyypit `image/jpeg` + `image/png`, Save / Remove / Cancel). Save ja Remove käyttävät callbackia, joka päivittää headerin avatarin uudella resurssilla ilman sivun uudelleenlataamista. Postgres-volumessa kuva säilyy myös `docker compose down`/`up`-kierroksen yli.
 
 #### E6. OAuth-kirjautuminen (Gmail tai GitHub)
 - Tila: [ ]
@@ -279,10 +279,16 @@ Vaatimukset: Docker Desktop (Windows/macOS) tai docker + docker compose -plugin 
 
 ## Kehitysaikainen seedaus
 
-Sovellus seedaa kaynnistyksessa testidatan paivittaista UI-testausta varten, koska kehitysaikainen H2-tietokanta on muistissa ja tyhjenee jokaisella uudelleenkaynnistyksella.
+Sovellus seedaa käynnistyksessä testidatan, jotta UI on heti käytettävässä kunnossa. Seederit ovat idempotentteja, joten ne ajavat vain puuttuvat rivit — käyttäjän itse lisäämiä tai muokkaamia rivejä ei korvata. Lokaalisti H2-tietokanta tyhjenee jokaisella uudelleenkäynnistyksellä, joten seederit ajavat joka kerta uudestaan; Docker-pinossa Postgres säilyy `db-data`-volumessa, jolloin seederit menevät läpi tyhjäkäynnillä ensimmäisen pyörityksen jälkeen.
 
-- `src/main/java/com/tonip/security/UserSeeder.java` luo idempotentisti kolme testitilia: `Admin/admin123` (ADMIN), `Super/super123` (SUPER), `User/user123` (USER). Tarpeen E2-paasymatriisin testaamiseen kaikilla rooleilla.
-- `src/main/java/com/tonip/movie/MovieCatalogSeeder.java` luo idempotentisti 10 genrea (Drama, Action, Crime, Sci-Fi, Thriller, Romance, Animation, Comedy, Family, Horror), 10 tunnettua elokuvaa (mm. Godfather, Dark Knight, Inception, Pulp Fiction, Shawshank, Forrest Gump, Matrix, Interstellar, Parasite, Spirited Away) genreliitoksin ja jokaiselle elokuvalle `MovieStats`-rivin (budjetti, lipputulot, kesto, IMDB-arvosana, arvostelujen maara). Showtimes seedataan tarkoituksellisesti ei, ne kayttaja luo manuaalisesti CRUD:n kautta. Idempotenssi tarkistetaan `existsByGenreNameIgnoreCase`, `existsByTitleIgnoreCase` ja `existsByMovieId` -metodeilla, joten kayttajan manuaalisesti lisaamia elokuvia ei korvata.
+- `src/main/java/com/tonip/security/UserSeeder.java` luo kolme testitiliä: `Admin/admin123` (ADMIN), `Super/super123` (SUPER), `User/user123` (USER). Käytössä E2-pääsymatriisin testaamiseen kaikilla rooleilla.
+- `src/main/java/com/tonip/movie/MovieCatalogSeeder.java` luo:
+  - 10 genreä 
+  - 10 tunnettua elokuvaa genreliitoksin.
+  - Jokaiselle elokuvalle `MovieStats`-rivin (budjetti, lipputulot, kesto, IMDB-arvosana, arvostelujen määrä).
+  - Kolme `Showtime`-riviä toukokuun 2026 päivämäärille.
+
+  Idempotenssi tarkistetaan `existsByGenreNameIgnoreCase`-, `existsByTitleIgnoreCase`- ja `existsByMovieId`-metodeilla.
 
 ## Project Structure
 
@@ -314,7 +320,7 @@ feature (domain entities, services, UI views, repositories) rather than being sp
     │   ├── home
     │   │   └── HomeView.java                   public dashboard (D2), translated via getTranslation (F3)
     │   ├── movie                               primary domain
-    │   │   ├── MovieCatalogSeeder.java         idempotent dev seed (10 genres + 10 movies + stats)
+    │   │   ├── MovieCatalogSeeder.java         idempotent dev seed (10 genres + 10 movies + stats + 3 showtimes)
     │   │   ├── MovieSearchCriteria.java        record carrying filter values (B-tasks)
     │   │   ├── MovieSearchService.java         Criteria API: between, JOIN, OR-AND (B2-B5)
     │   │   ├── MovieService.java               CRUD + broadcast on save/delete (F2)
@@ -345,7 +351,7 @@ feature (domain entities, services, UI views, repositories) rather than being sp
     │       ├── UserRegistrationService.java    public sign-up (E3)
     │       ├── UserProfileService.java         profile picture CRUD (E5)
     │       ├── domain
-    │       │   ├── User.java                   includes profile_picture LOB (E5)
+    │       │   ├── User.java                   includes profile_picture bytea column (E5)
     │       │   ├── Role.java
     │       │   └── UserRepository.java
     │       └── ui
