@@ -9,7 +9,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
@@ -41,9 +40,8 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = true;
 
-    @Lob
     @Basic(fetch = FetchType.LAZY)
-    @Column(name = "profile_picture")
+    @Column(name = "profile_picture", columnDefinition = "bytea")
     private byte[] profilePicture;
 
     @Column(name = "profile_picture_mime_type", length = 80)
