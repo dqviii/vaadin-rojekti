@@ -32,6 +32,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
@@ -60,7 +61,7 @@ public class ShowtimeListView extends VerticalLayout {
 
         var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
                 .withLocale(getLocale());
-        var currencyFormat = NumberFormat.getCurrencyInstance(getLocale());
+        var currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
 
         grid.addColumn(s -> s.getMovie().getTitle()).setHeader("Movie").setAutoWidth(true).setFlexGrow(1);
         grid.addColumn(s -> dateTimeFormatter.format(s.getStartTime())).setHeader("Start").setAutoWidth(true);

@@ -30,6 +30,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Collections;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
@@ -55,7 +56,7 @@ public class MovieStatsListView extends VerticalLayout {
         toolbar.setWidthFull();
         toolbar.expand(viewTitle);
 
-        var currencyFormat = NumberFormat.getCurrencyInstance(getLocale());
+        var currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
 
         grid.addColumn(s -> s.getMovie().getTitle()).setHeader("Movie").setAutoWidth(true).setFlexGrow(1);
         grid.addColumn(s -> s.getRuntimeMinutes() + " min").setHeader("Runtime").setAutoWidth(true);

@@ -7,6 +7,9 @@ import com.tonip.movie.domain.Movie;
 import com.tonip.movie.domain.MovieRepository;
 import com.tonip.movie.domain.MovieStats;
 import com.tonip.movie.domain.MovieStatsRepository;
+import com.tonip.movie.domain.ScreenType;
+import com.tonip.movie.domain.Showtime;
+import com.tonip.movie.domain.ShowtimeRepository;
 import com.tonip.movie.domain.TargetAudience;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,13 +30,16 @@ public class MovieCatalogSeeder implements CommandLineRunner {
     private final GenreRepository genreRepository;
     private final MovieRepository movieRepository;
     private final MovieStatsRepository movieStatsRepository;
+    private final ShowtimeRepository showtimeRepository;
 
     public MovieCatalogSeeder(GenreRepository genreRepository,
                               MovieRepository movieRepository,
-                              MovieStatsRepository movieStatsRepository) {
+                              MovieStatsRepository movieStatsRepository,
+                              ShowtimeRepository showtimeRepository) {
         this.genreRepository = genreRepository;
         this.movieRepository = movieRepository;
         this.movieStatsRepository = movieStatsRepository;
+        this.showtimeRepository = showtimeRepository;
     }
 
     @Override
@@ -40,6 +47,7 @@ public class MovieCatalogSeeder implements CommandLineRunner {
     public void run(String... args) {
         Map<String, Genre> genres = seedGenres();
         seedMovies(genres);
+        seedShowtimes();
     }
 
     private Map<String, Genre> seedGenres() {
@@ -153,6 +161,31 @@ public class MovieCatalogSeeder implements CommandLineRunner {
                         spec.runtime(), spec.imdb(), spec.reviews());
                 movieStatsRepository.save(stats);
             }
+        }
+    }
+
+    private void seedShowtimes() {
+        record ShowtimeSpec(String movieTitle, LocalDateTime start, String hall,
+                            ScreenType screen, BigDecimal price, int seats) {
+        }
+        var specs = List.of(
+                new ShowtimeSpec("Pulp Fiction", LocalDateTime.of(2026, 5, 8, 19, 30),
+                        "Hall A", ScreenType.IMAX, new BigDecimal("14.50"), 120),
+                new ShowtimeSpec("Spirited Away", LocalDateTime.of(2026, 5, 22, 17, 0),
+                        "Hall B", ScreenType.STANDARD_2D, new BigDecimal("12.00"), 200),
+                new ShowtimeSpec("The Matrix", LocalDateTime.of(2026, 5, 15, 21, 0),
+                        "Hall C", ScreenType.DOLBY_ATMOS, new BigDecimal("16.50"), 150));
+
+        for (var spec : specs) {
+            Movie movie = movieRepository.findAll().stream()
+                    .filter(m -> m.getTitle().equalsIgnoreCase(spec.movieTitle()))
+                    .findFirst()
+                    .orElse(null);
+            if (movie == null || showtimeRepository.existsByMovieId(movie.getId())) {
+                continue;
+            }
+            showtimeRepository.save(new Showtime(movie, spec.start(), spec.hall(),
+                    spec.screen(), spec.price(), spec.seats()));
         }
     }
 }
