@@ -35,6 +35,7 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -216,10 +217,18 @@ public class MovieListView extends VerticalLayout {
         confirm.setConfirmText("Delete");
         confirm.setConfirmButtonTheme("error primary");
         confirm.addConfirmListener(e -> {
-            movieService.delete(movie.getId());
-            grid.getDataProvider().refreshAll();
-            Notification.show("Movie deleted", 3000, Notification.Position.BOTTOM_END)
-                    .addThemeVariants(NotificationVariant.SUCCESS);
+            try {
+                movieService.delete(movie.getId());
+                grid.getDataProvider().refreshAll();
+                Notification.show("Movie deleted", 3000, Notification.Position.BOTTOM_END)
+                        .addThemeVariants(NotificationVariant.SUCCESS);
+            } catch (DataIntegrityViolationException ex) {
+                Notification.show(
+                        "Cannot delete \"" + movie.getTitle()
+                                + "\" — it still has stats or showtimes. Remove those first.",
+                        6000, Notification.Position.BOTTOM_END)
+                        .addThemeVariants(NotificationVariant.ERROR);
+            }
         });
         confirm.open();
     }
